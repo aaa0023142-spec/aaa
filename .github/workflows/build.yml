@@ -23,10 +23,12 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Create Flutter Project Structure
+      - name: Create Full Flutter Project & Inject Code
         run: |
-          mkdir -p lib
-          # البحث عن ملف الكود وسحبه سواء كان باسم main.dart أو أي ملف .dart أو .txt آخر
+          # إنشاء مشروع فلاتر حقيقي وجاهز بكافة ملفات الأندرويد والإعدادات
+          flutter create . --org com.adhkar.app --project-name adhkar_app --platforms android
+          
+          # نقل كود الأذكار الخاص بك إلى الملف الرئيسي للمشروع المنشأ حديثاً
           if [ -f "main.dart" ]; then
             cp main.dart lib/main.dart
           elif [ -f "إذكار الصباح والمساء.txt" ]; then
@@ -34,21 +36,6 @@ jobs:
           else
             find . -maxdepth 1 -type f \( -name "*.dart" -o -name "*.txt" \) ! -name "README.md" -exec cp {} lib/main.dart \; -quit
           fi
-          
-          cat << 'EOF' > pubspec.yaml
-          name: adhkar_app
-          description: "Android Adhkar App"
-          publish_to: 'none'
-          version: 1.0.0+1
-          environment:
-            sdk: '>=3.0.0 <4.0.0'
-          dependencies:
-            flutter:
-              sdk: flutter
-            cupertino_icons: ^1.0.2
-          flutter:
-            uses-material-design: true
-          EOF
 
       - name: Install dependencies
         run: flutter pub get
