@@ -23,19 +23,72 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Create Full Flutter Project & Inject Code
+      - name: Create Full Flutter Project & Inject Code & Assets
         run: |
-          # إنشاء مشروع فلاتر حقيقي وجاهز بكافة ملفات الأندرويد والإعدادات
+          # 1. إنشاء هياكل مشروع فلاتر الأندرويد
           flutter create . --org com.adhkar.app --project-name adhkar_app --platforms android
           
-          # نقل كود الأذكار الخاص بك إلى الملف الرئيسي للمشروع المنشأ حديثاً
+          # 2. إنشاء مجلد الأصول للصور
+          mkdir -p assets
+
+          # 3. البحث عن صورة اللوجو المفرغ logo.png ونقلها لمجلد assets
+          if [ -f "logo.png" ]; then
+            cp logo.png assets/logo.png
+          elif [ -f ".github/workflows/logo.png" ]; then
+            cp .github/workflows/logo.png assets/logo.png
+          fi
+
+          # 4. تحديد صورة أيقونة الموبايل الخارجية ic_launcher.png
+          if [ -f "ic_launcher.png" ]; then
+            ICON_SRC="ic_launcher.png"
+          elif [ -f ".github/workflows/ic_launcher.png" ]; then
+            ICON_SRC=".github/workflows/ic_launcher.png"
+          elif [ -f "assets/logo.png" ]; then
+            ICON_SRC="assets/logo.png"
+          fi
+
+          # 5. تطبيق الأيقونة الخارجية ذات الخلفية البيضاء على كل مجلدات النظام بالأندرويد
+          if [ -n "$ICON_SRC" ]; then
+            mkdir -p android/app/src/main/res/mipmap-hdpi
+            mkdir -p android/app/src/main/res/mipmap-mdpi
+            mkdir -p android/app/src/main/res/mipmap-xhdpi
+            mkdir -p android/app/src/main/res/mipmap-xxhdpi
+            mkdir -p android/app/src/main/res/mipmap-xxxhdpi
+            
+            cp "$ICON_SRC" android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+            cp "$ICON_SRC" android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+            cp "$ICON_SRC" android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+            cp "$ICON_SRC" android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+            cp "$ICON_SRC" android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          fi
+
+          # 6. تغيير اسم التطبيق ليظهر بالعربي "أذكار الصباح والمساء" على شاشة الهاتف
+          sed -i 's/android:label="adhkar_app"/android:label="أذكار الصباح والمساء"/g' android/app/src/main/AndroidManifest.xml
+
+          # 7. نقل ملف الكود الرئيسي main.dart لمكانه الصحيح
           if [ -f "main.dart" ]; then
             cp main.dart lib/main.dart
-          elif [ -f "إذكار الصباح والمساء.txt" ]; then
-            cp "إذكار الصباح والمساء.txt" lib/main.dart
-          else
-            find . -maxdepth 1 -type f \( -name "*.dart" -o -name "*.txt" \) ! -name "README.md" -exec cp {} lib/main.dart \; -quit
+          elif [ -f ".github/workflows/main.dart" ]; then
+            cp .github/workflows/main.dart lib/main.dart
           fi
+          
+          # 8. إعداد ملف pubspec.yaml لربط الأصول والموارد
+          cat << 'EOF' > pubspec.yaml
+          name: adhkar_app
+          description: "تطبيق أذكار الصباح والمساء"
+          publish_to: 'none'
+          version: 1.0.0+1
+          environment:
+            sdk: '>=3.0.0 <4.0.0'
+          dependencies:
+            flutter:
+              sdk: flutter
+            cupertino_icons: ^1.0.2
+          flutter:
+            uses-material-design: true
+            assets:
+              - assets/logo.png
+          EOF
 
       - name: Install dependencies
         run: flutter pub get
