@@ -922,17 +922,39 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 InkWell(
                   onTap: () => onUpdateColors(Colors.black87, Colors.white),
-                  child: Container(width: 25, height: 25, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: Colors.grey))),
+                  child: Container(
+                    width: 25, 
+                    height: 25, 
+                    decoration: BoxDecoration(
+                      color: Colors.white, 
+                      shape: BoxShape.circle, 
+                      border: Border.all(color: Colors.grey),
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 InkWell(
                   onTap: () => onUpdateColors(const Color(0xFF2C3E50), const Color(0xFFFFF8E7)),
-                  child: Container(width: 25, height: 25, decoration: const BoxDecoration(color: Color(0xFFFFF8E7), shape: BoxShape.circle)),
+                  child: Container(
+                    width: 25, 
+                    height: 25, 
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFFF8E7), 
+                      shape: BoxShape.circle,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 InkWell(
                   onTap: () => onUpdateColors(Colors.white, const Color(0xFF1E272C)),
-                  child: Container(width: 25, height: 25, decoration: const BoxDecoration(color: Color(0xFF1E272C), shape: BoxShape.circle)),
+                  child: Container(
+                    width: 25, 
+                    height: 25, 
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1E272C), 
+                      shape: BoxShape.circle,
+                    ),
+                  ),
                 ),
               ],
             ),
