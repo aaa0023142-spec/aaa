@@ -31,48 +31,43 @@ jobs:
           # 2. إنشاء مجلد الأصول للصور
           mkdir -p assets
 
-          # 3. البحث عن صورة اللوجو المفرغ logo.png ونقلها لمجلد assets
+          # 3. البحث عن صورة اللوجو الشفاف الداخلي logo.png ونقله لمجلد assets
           if [ -f "logo.png" ]; then
             cp logo.png assets/logo.png
           elif [ -f ".github/workflows/logo.png" ]; then
             cp .github/workflows/logo.png assets/logo.png
           fi
 
-          # 4. تحديد صورة أيقونة الموبايل الخارجية ic_launcher.png
+          # 4. تثبيت مكتبة flutter_launcher_icons لتوليد أيقونة الهاتف الخارجية بشكل هندسي سليم 100% وتجنب أخطاء AAPT2
+          cat << 'EOF' > flutter_icons.yaml
+          dev_dependencies:
+            flutter_launcher_icons: "^0.13.1"
+
+          flutter_launcher_icons:
+            image_path: "ic_launcher.png"
+            android: true
+            ios: false
+            image_path_android: "ic_launcher.png"
+          EOF
+
+          # البحث عن أيقونة الهاتف الخارجية ic_launcher.png
           if [ -f "ic_launcher.png" ]; then
-            ICON_SRC="ic_launcher.png"
+            cp ic_launcher.png ic_launcher.png
           elif [ -f ".github/workflows/ic_launcher.png" ]; then
-            ICON_SRC=".github/workflows/ic_launcher.png"
-          elif [ -f "assets/logo.png" ]; then
-            ICON_SRC="assets/logo.png"
+            cp .github/workflows/ic_launcher.png ic_launcher.png
           fi
 
-          # 5. تطبيق الأيقونة الخارجية ذات الخلفية البيضاء على كل مجلدات النظام بالأندرويد
-          if [ -n "$ICON_SRC" ]; then
-            mkdir -p android/app/src/main/res/mipmap-hdpi
-            mkdir -p android/app/src/main/res/mipmap-mdpi
-            mkdir -p android/app/src/main/res/mipmap-xhdpi
-            mkdir -p android/app/src/main/res/mipmap-xxhdpi
-            mkdir -p android/app/src/main/res/mipmap-xxxhdpi
-            
-            cp "$ICON_SRC" android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-            cp "$ICON_SRC" android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-            cp "$ICON_SRC" android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-            cp "$ICON_SRC" android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-            cp "$ICON_SRC" android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-          fi
-
-          # 6. تغيير اسم التطبيق ليظهر بالعربي "أذكار الصباح والمساء" على شاشة الهاتف
+          # 5. تغيير اسم التطبيق ليظهر بالعربي "أذكار الصباح والمساء" على شاشة الهاتف
           sed -i 's/android:label="adhkar_app"/android:label="أذكار الصباح والمساء"/g' android/app/src/main/AndroidManifest.xml
 
-          # 7. نقل ملف الكود الرئيسي main.dart لمكانه الصحيح
+          # 6. نقل ملف الكود الرئيسي main.dart لمكانه الصحيح
           if [ -f "main.dart" ]; then
             cp main.dart lib/main.dart
           elif [ -f ".github/workflows/main.dart" ]; then
             cp .github/workflows/main.dart lib/main.dart
           fi
           
-          # 8. إعداد ملف pubspec.yaml لربط الأصول والموارد
+          # 7. إعداد ملف pubspec.yaml لربط الأصول والموارد
           cat << 'EOF' > pubspec.yaml
           name: adhkar_app
           description: "تطبيق أذكار الصباح والمساء"
@@ -84,14 +79,17 @@ jobs:
             flutter:
               sdk: flutter
             cupertino_icons: ^1.0.2
+            flutter_launcher_icons: ^0.13.1
           flutter:
             uses-material-design: true
             assets:
               - assets/logo.png
           EOF
 
-      - name: Install dependencies
-        run: flutter pub get
+      - name: Install dependencies & Generate Icons
+        run: |
+          flutter pub get
+          flutter pub run flutter_launcher_icons:main -f flutter_icons.yaml || true
 
       - name: Build APK
         run: flutter build apk --release
